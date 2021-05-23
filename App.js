@@ -12,16 +12,20 @@ import {
   Modal,
   StyleSheet,
   Text,
-  Pressable,
   View,
   ActivityIndicator,
+  Dimensions,
+  TouchableOpacity,
 } from 'react-native';
 import axios from 'axios';
+import ListOrcamento from './src/ListOrcamento';
+
+const {width} = Dimensions.get('window');
 
 const App = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [orcamento, setOrcamento] = useState([]);
+  const [dataSelected, setDataSelected] = useState(null);
+  const [orcamento, setOrcamento] = useState(null);
   useEffect(() => {
     const fetchData = async () => {
       const {data} = await axios.get(
@@ -30,37 +34,53 @@ const App = () => {
       setOrcamento([...data]);
     };
     fetchData();
-    setLoading(!loading);
   }, []);
   return (
     <View style={styles.centeredView}>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          Alert.alert('Modal has been closed.');
-          setModalVisible(!modalVisible);
-        }}>
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalText}>Hello World!</Text>
-            <Pressable
-              style={[styles.button, styles.buttonClose]}
-              onPress={() => setModalVisible(!modalVisible)}>
-              <Text style={styles.textStyle}>Hide Modal</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-      {loading ? (
+      {orcamento === null ? (
         <ActivityIndicator size="large" color="gray" />
       ) : (
-        <Pressable
-          style={[styles.button, styles.buttonOpen]}
-          onPress={() => setModalVisible(true)}>
-          <Text style={styles.textStyle}>Show Modal</Text>
-        </Pressable>
+        <View style={styles.contentList}>
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => {
+              Alert.alert('Modal has been closed.');
+              setModalVisible(!modalVisible);
+            }}>
+            <View
+              style={[styles.centeredView, {backgroundColor: 'transparent'}]}>
+              <View style={styles.modalView}>
+                <Text style={styles.modalText}>
+                  Vendedor: {dataSelected?.seller}
+                </Text>
+                <Text style={styles.modalText}>
+                  Cliente: {dataSelected?.customer}
+                </Text>
+                <Text style={styles.modalText}>
+                  Valor:{dataSelected?.value}
+                </Text>
+                <Text style={styles.modalText}>
+                  Descrição: {dataSelected?.description}
+                </Text>
+                <TouchableOpacity
+                  style={[styles.button, styles.buttonClose]}
+                  onPress={() => setModalVisible(!modalVisible)}>
+                  <Text style={styles.textStyle}>Fechar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+          <Text style={styles.headerTitle}>Lista de Orçamentos</Text>
+          <ListOrcamento
+            data={orcamento}
+            modalshow={data => {
+              setModalVisible(!modalVisible);
+              setDataSelected(data);
+            }}
+          />
+        </View>
       )}
     </View>
   );
@@ -71,8 +91,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 22,
-    backgroundColor: 'white',
+    backgroundColor: '#f1f1f1',
+  },
+  contentList: {
+    width: width * 1,
+    height: '100%',
   },
   modalView: {
     margin: 20,
@@ -108,6 +131,14 @@ const styles = StyleSheet.create({
   modalText: {
     marginBottom: 15,
     textAlign: 'center',
+  },
+  headerTitle: {
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 24,
+    lineHeight: 30,
+    height: 50,
+    paddingTop: 10,
   },
 });
 
